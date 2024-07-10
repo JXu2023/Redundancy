@@ -20,7 +20,8 @@ public class Redundancy
     public static int nonRedundantCounter;
     /**
      * parses the csv
-     * 
+     * @param fileName
+     * @return a list of the records
      */
     public static List<String[]> getLines(String fileName) {
         String line;
@@ -45,6 +46,15 @@ public class Redundancy
         }
         return records;
     }
+
+    /**
+     * Creates the indexes and enumerates the records
+     * @param records string list of records
+     * @param indexHolder index holder that maps a value to an index
+     * @param lengths the length of each variable
+     * @param enumRecs the enumerated list of records
+     * @param binaryLabels the list of binary labels
+     */
     public static void createIndex(List<String[]> records, HashMap<String, Integer> indexHolder, int[] lengths, List<List<Integer>> enumRecs, List<Integer> binaryLabels) {
         boolean firstLine = true;
         for (String[] record : records) {
@@ -74,8 +84,13 @@ public class Redundancy
             enumRecs.add(enumRec);
 
         }
-    } 
+    }
 
+    /**
+     * Calculates the amount of bits we need to shift for each index
+     * @param lengths
+     * @return int[] mover
+     */
     public static int[] getMover(int[] lengths){ 
         int[] bitSize = new int[size];
         bitSize[0] = 0;
@@ -87,6 +102,16 @@ public class Redundancy
         return bitSize;
         
     }
+
+    /**
+     * Gets the stats and covers
+     * @param move
+     * @param indexHolder the index holder
+     * @param map the map we will put the stats in
+     * @param enumRecs the records in enumerated form
+     * @param binaryLabels the binary labels corresponding with records
+     * @param covers the covers of each population
+     */
     public static void aggregate(int[] move,HashMap<String, Integer> indexHolder, HashMap<Long, Long> map, List<List<Integer>> enumRecs, List<Integer> binaryLabels,  HashMap<Long, List<Long>> covers) {
         HashMap<List<Integer>, Long> agg = new HashMap<>();
         int count = 0;
@@ -123,6 +148,13 @@ public class Redundancy
 
 
     }
+
+    /**
+     * gets the rate for a population
+     * @param map
+     * @param key the population
+     * @return the rate of the population
+     */
     public static double getRate(HashMap<Long, Long> map, Long key){ 
         double rate = 0;
         if(map.containsKey(key)){
@@ -135,6 +167,11 @@ public class Redundancy
         return rate;
     }
 
+    /**
+     * Groups covers together so that the covering is  now the key and the value is list of populations with the same cover
+     * @param covers
+     * @return grouped covering
+     */
     public static HashMap<List<Long>, List<Long>> groupCovers(HashMap<Long, List<Long>> covers) {
         HashMap<List<Long>, List<Long>> gc = new HashMap<>();
         for(Long pop: covers.keySet()) {
@@ -147,6 +184,17 @@ public class Redundancy
         return gc;
 
     }
+
+    /**
+     * Checks whether the two siblings and separator are a SP
+     * @param c1 sibling 1
+     * @param c2 sibling 2
+     * @param j separator
+     * @param stats the stats of the populations
+     * @param move
+     * @param lengths
+     * @return boolean whether it is an SP
+     */
     public static boolean checkSP(Long c1, Long c2, int j, HashMap<Long, Long> stats, int[] move, int[] lengths) {
         if(!stats.containsKey(c1) || !stats.containsKey(c2)) {
             return false;
@@ -199,24 +247,24 @@ public class Redundancy
                 }
                 double c1xr = getRate(stats, c1x);
                 double c2xr = getRate(stats, c2x);
-
                 if(c1xr < c2xr){
                     c2gc1++;
-
                 } else if(c1xr > c2xr) {
                     c1gc2++;
                 }
-
-                
-
             }
-
             return (c1gc2 == 0 || c2gc1 == 0) && (c1gc2 != 0 || c2gc1 != 0);
 
         }
         return true;
     }
 
+    /**
+     * Gets the population with the least stars
+     * @param list of populations
+     * @param mover
+     * @return
+     */
     public static Pair<List<Integer>, Long> getLeastStars(List<Long> list, int[] mover) {
         int least = size + 1;
         long key = 0;
@@ -230,8 +278,6 @@ public class Redundancy
                     numZeros++;
                     nzeros.add(j);
                 }
-
-
             }
             if(numZeros < least) {
                 key = l;
@@ -241,38 +287,47 @@ public class Redundancy
         }
         return new Pair<>(zeros, key);
     }
+
+    /**
+     * Finds the list of SP
+     * @param aggregations the statistics of each population
+     * @param groupedCovers the grouped covers
+     * @param lengths
+     * @param mover
+     * @return a list of all SP
+     */
     public static List<Triplet<Long, Long, Integer>> findSP(HashMap<Long,Long> aggregations, HashMap<List<Long>, List<Long>> groupedCovers, int[] lengths, int[] mover ){
         List<Triplet<Long, Long, Integer>> allSps = new ArrayList<>(); // c1, c2, j
         for(List<Long> k : groupedCovers.keySet()) { // k is the covering, v is the list of populations that have that covering
             List<Long> v = groupedCovers.get(k);
-            Pair<List<Integer>, Long> info = getLeastStars(v, mover);
+            Pair<List<Integer>, Long> info = getLeastStars(v, mover); // use the population with least stars
             long l1 = info.getValue1();
             List<Integer> zeros = info.getValue0();
             List<Quartet<Integer, Integer, Long, Long>> coverSPs = new ArrayList<>(); // i, j, i1, i2
             if(zeros.size() < 2){
                 continue;
             }
-            for(int i : zeros){
-                for(long i1 = 1; i1 < lengths[i]; i1++){
+            for(int i : zeros){ // for the stars
+                for(long i1 = 1; i1 < lengths[i]; i1++){ // for the indexes in that star to make siblings
                     long c1 = l1 + (i1 << mover[i]);
                     
                     if(!aggregations.containsKey(c1)){
                         continue;
                     }
-                    for(long i2 = i1 + 1; i2 <= lengths[i]; i2++){
+                    for(long i2 = i1 + 1; i2 <= lengths[i]; i2++){ // sibling 2
                         long c2 = l1 + (i2 << mover[i]);
                         if(!aggregations.containsKey(c2)){
                             continue;
                         }
                         
-                        for(int j :zeros){
+                        for(int j :zeros){ // for seperators
                             if(i == j) {
                                 continue;
                             }
 
-                            boolean isSP = checkSP(c1, c2, j, aggregations, mover, lengths);
+                            boolean isSP = checkSP(c1, c2, j, aggregations, mover, lengths); // check SP
                             if(isSP) {
-                                coverSPs.add(new Quartet<>(i, j, i1, i2));
+                                coverSPs.add(new Quartet<>(i, j, i1, i2)); // if it is an SP, add it to this cover
                             }
                         }
                     }
@@ -280,7 +335,7 @@ public class Redundancy
                 }
 
             }
-            for(Quartet<Integer, Integer, Long, Long> q : coverSPs){
+            for(Quartet<Integer, Integer, Long, Long> q : coverSPs){ // for the SPs in the cover
                 nonRedundantCounter++;
                 int i = q.getValue0();
                 int j = q.getValue1();
