@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="60f6fcfe-d858-4f7c-a300-f34cd51b158b" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/adult.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Redundancy.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Decade.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Decade.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Ennead.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Ennead.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/KeyValue.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/LabelValue.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Octet.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Octet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Pair.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Pair.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Quartet.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Quartet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Quintet.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Quintet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Septet.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Septet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Sextet.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Sextet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Triplet.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Triplet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Tuple.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Tuple.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Unit.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/Unit.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue0.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue0.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue1.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue1.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue2.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue2.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue3.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue3.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue4.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue4.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue5.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue5.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue6.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue6.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue7.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue7.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue8.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue8.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue9.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValue9.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValueKey.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValueLabel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/org/javatuples/valueintf/IValueValue.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="SYNC" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2iCztmkMyxTViCPfo4KVBT6BjNX" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;Application.Redundancy.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\golfp\IdeaProjects\Paradox_Redundancy" />
+      <recent name="C:\Users\golfp\IdeaProjects\Paradox_Redundancy\src" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Redundancy" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Redundancy" />
+      <module name="Paradox_Redundancy" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Redundancy" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="jdk-21.0.1-openjdk-21.0.1-f644763e9732-f98dd351" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="60f6fcfe-d858-4f7c-a300-f34cd51b158b" name="Changes" comment="" />
+      <created>1719009563809</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1719009563809</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+</project>
