@@ -57,12 +57,7 @@ public class kdd
      * @param binaryLabels the list of binary labels
      */
     public static void createIndex(List<String[]> records, HashMap<String, Integer> indexHolder, int[] lengths, List<List<Integer>> enumRecs, List<Integer> binaryLabels) {
-        boolean firstLine = true;
         for (String[] record : records) {
-            if(firstLine){ 
-                firstLine = false;
-                continue;
-            }
             int count = 0;
             List<Integer> enumRec = new ArrayList<>();
             for(String s: record){
@@ -201,9 +196,9 @@ public class kdd
             return false;
         }
 
-        if((stats.get(c1) >> 32) + (stats.get(c2) >> 32) <= 4* lengths[j]) {
-            return false;
-        }
+        // if((stats.get(c1) >> 32) + (stats.get(c2) >> 32) <= 4* lengths[j]) {
+        //     return false;
+        // }
         
         double c1r = getRate(stats, c1);
         double c2r = getRate(stats, c2);
