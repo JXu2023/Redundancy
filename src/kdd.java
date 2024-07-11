@@ -31,7 +31,7 @@ public class kdd
                 String[] fields = line.split(",", 0);
                 boolean flag = false;
                 for(String s : fields) {
-                    if(s.contains(" ?")) {
+                    if(s.contains(" ?") || s.contains("income")) {
                         flag = true;
                         break;
                     }
@@ -44,6 +44,7 @@ public class kdd
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(records.size());
         return records;
     }
 
@@ -363,7 +364,7 @@ public class kdd
         HashMap<List<Long>, List<Long>> groupedCovers = groupCovers(covers);
         System.out.println(covers.size());
         System.out.println(groupedCovers.size());
-        System.out.println(System.currentTimeMillis() - time);
+        // System.out.println(System.currentTimeMillis() - time);
         SPCounter = 0;
         nonRedundantCounter = 0;
         List<Triplet<Long, Long, Integer>> SPs = findSP(aggregations, covers, lengths, move);
