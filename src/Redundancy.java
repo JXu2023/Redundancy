@@ -31,7 +31,7 @@ public class Redundancy
                 String[] fields = line.split(",", 0);
                 boolean flag = false;
                 for(String s : fields) {
-                    if(s.contains("?")) {
+                    if(s.contains(" ?")) {
                         flag = true;
                         break;
                     }
