@@ -1,0 +1,393 @@
+import java.util.*;
+import java.io.*;
+
+/**
+ * The algorithms used to find Simpson's Paradoxes in multi-dimensional data sets.
+ *
+ * @Jay Xu
+ * @August 28, 2022
+ */
+public class MDSP2 {
+    public static final int size = 8; // number of attributes
+    public static final String filename = "adult.csv";
+    public static final boolean strong = false;
+    public static long time = System.currentTimeMillis();
+    public static int counter;
+    /**
+     * parses the csv
+     * 
+     */
+    public static List<String[]> getLines(String fileName) throws FileNotFoundException{
+        String line;
+        List<String[]> records = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+            while ((line = br.readLine()) != null) {
+                String[] fields = line.split(",", 0);
+                boolean flag = false;
+                for(String s : fields) {
+                    if(s.indexOf('?') != -1) {
+                        flag = true;
+                        break;
+                    }
+                }
+                records.add(fields);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return records;
+    }
+    public static void createIndex2(List<String[]> records, HashMap<String, Integer> indexHolder, int[] lengths, List<List<Integer>> enumRecs, List<Integer> binaryLabels) {
+        boolean firstLine = true;
+        for (String[] record : records) {
+            if(firstLine){ 
+                firstLine = false;
+                continue;
+            }
+            int count = 0;
+            List<Integer> enumRec = new ArrayList<>();
+            for(String s: record){
+                if(count == size){
+                    binaryLabels.add(Integer.parseInt(s));
+                    break;
+                }
+                // create a distinct key that corresponds with an index
+                String key = count + " " + s; 
+                if(!indexHolder.containsKey(key)){
+                    // update the amount of elements for each attribute.
+                   lengths[count]++; 
+                   int i = lengths[count];
+                indexHolder.put(key, i); 
+
+                }
+                enumRec.add(indexHolder.get(key));
+                count++;
+            }
+            enumRecs.add(enumRec);
+
+        }
+    } 
+
+    /**
+     * Creates the indexes for each value in each attribute.
+     * 
+     */
+    public static void createIndex( HashMap<String, Integer> indexHolder, int[] lengths) throws FileNotFoundException{ 
+        File file = new File(filename);
+        Scanner scan = new Scanner(file);
+        boolean firstLine = true;
+        while(scan.hasNextLine()){
+            String line = scan.nextLine();
+            String vals[] = line.split(",", 0);
+            if(firstLine){ 
+                firstLine = false;
+                continue;
+            }
+            int count = 0;
+            for(String s: vals){
+                if(count == size){
+                    break;
+                }
+                // create a distinct key that corresponds with an index
+                String key = s + " "+ count; 
+                if(!indexHolder.containsKey(key)){
+                    // update the amount of elements for each attribute.
+                   lengths[count]++; 
+                   int i = lengths[count];
+                    indexHolder.put(key, i); 
+
+                }
+                count++;
+            }
+        }
+    }
+    /**
+     * Assigns how many bits each attribute needs to move 
+     */
+    public static int[] getMover(int[] lengths){ 
+        int[] bitSize = new int[size];
+        bitSize[0] = 0;
+        for(int i = 1; i < size; i++){
+            bitSize[i] = bitSize[i-1] + (int)(Math.log(lengths[i-1])/Math.log(2)) + 1; // how many bits to move each attribute over
+
+        }
+
+        return bitSize;
+
+    }
+
+    public static void aggregate2(int[] move,HashMap<String, Integer> indexHolder, HashMap<Long, Long> map, List<List<Integer>> enumRecs, List<Integer> binaryLabels) {
+        HashMap<List<Integer>, Long> agg = new HashMap<>();
+        int count = 0;
+        for(List<Integer> listKey : enumRecs) {
+            if(!agg.containsKey(listKey)) {
+                agg.put(listKey, (long)0);
+            }
+            agg.put(listKey, agg.get(listKey) + ((long)1 << 32) +(long)binaryLabels.get(count));
+            count++;
+        }
+        for(List<Integer> listKey: agg.keySet()) {
+            for(int i = 0; i < (1 << size); i++) {
+                long l = 0;
+                for(int j = 0; j < size; j++){
+                    long ind = (long) 1<< j;
+                    if((ind & i) == ind) {
+                        l += listKey.get(j) << move[j];
+                    }
+                }
+                if(!map.containsKey(l)){
+                    map.put(l, (long)0);
+                }
+                map.put(l, map.get(l) + agg.get(listKey));
+            }
+
+        }
+
+
+
+    }
+    /**
+     * Collects statistics (Algorithm 2)
+     */
+    public static void aggregate(int[] move, HashMap<String, Integer> indexHolder, HashMap<Long, Long> map) throws FileNotFoundException{
+        File file = new File(filename); // a multidimensional data set T
+        Scanner scan = new Scanner(file);
+        boolean firstLine = true;
+         HashMap<String, Long> agg = new HashMap<String, Long>(); 
+         //for each unique record t = (x1,..., xn, y) in T
+       while(scan.hasNextLine()){ 
+           // count the number of its duplicates in T
+
+            String line = scan.nextLine();
+            if(firstLine){
+                firstLine = false;
+                continue;
+            }
+            int Y = Integer.parseInt(line.substring(line.length() -1));
+            line = line.substring(0,line.length() -1);
+
+
+            if(!agg.containsKey(line)){
+                agg.put(line, new Long(0));
+            }
+
+            agg.put(line, new Long(agg.get(line).longValue() + ((long)1 << 32 ) + Y));
+
+        }
+        System.out.println(agg.size());
+        // for each unique record t = (x1,..., xn, y) in T
+        for(String line: agg.keySet()){ 
+            String vals[] = line.split(",", 0);
+            long[] indexes = new long[size]; 
+
+            for(int i = 0; i < size; i++){
+                String key = vals[i] + " " + i;
+                indexes[i] = indexHolder.get(key); 
+            }
+            // for each ancestor (x1',...,xn') of (x1,...,xn) in T   
+            for(int i = 0; i < Math.pow(2,size); i++){ 
+                long l = 0; // the ancestor
+                for(int j = 0; j < size; j++){
+                    long a = (long)1 << j;
+                    if( (a & i) == a){ 
+                        l += indexes[j] << move[j];
+                    }  
+                }
+                Long l1 = new Long(l);
+                if(!map.containsKey(l1)){
+                    map.put(l1, new Long(0));
+                }
+                // Update counters of the statistics 
+                Long l2 = map.get(l1);
+                long l3 = l2.longValue(); // the total and count of the ancestor, first 32 bits are total, second 32 are count
+                l3 += agg.get(line).longValue();
+                map.put(l1, l3); 
+                }
+        }   
+    }
+    /**
+     * Finds all Simpson's Paradoxes using statistics (Algorithm 3)
+     */
+    public static void findSP(HashMap<Long,Long> map, int[] move, int[] lengths ) {
+        // for each non-empty subpopulation c = (x1,..., xn)
+        for(Long agg: map.keySet()){ 
+            //pruning
+            if((map.get(agg).longValue() >> 32 ) < 9){ 
+                continue;
+            }
+             int[] usedIndexes = new int[size];
+             long l1 = agg.longValue();
+             //for each attribute
+             for(int i  = 0; i < size - 1; i++){
+                 for(int j = move[i]; j < move[i+1]; j++){
+                     long l2 = (long)1 << j;
+                     //see if the attribute is present
+                     if((l2 & l1) == l2){
+                         usedIndexes[i] = 1;
+                          break;   
+                     }
+                 }
+             }
+             if(l1 >= ((long)1<<move[size-1])){
+                 usedIndexes[size-1] = 1;
+             }
+             // for each dimension Di such that xi = *
+             for(int i = 0; i < size; i++){ 
+                 if(usedIndexes[i] == 1){
+                     continue;
+                 }
+                 // for each dimension Dj such that xj = * and i != j
+                for(int j = 0; j < size; j++){ 
+                     if(usedIndexes[j] == 1 || i == j){
+                         continue;
+                     }
+                     // for each pair of values y, y' ∈ Dom(Di) such that c1 = (x1,...xi-1, y, xi+1, ...xn) and c2 = (x1,...xi-1, y', xi+1, ...xn) are non-empty subpopulations
+                    for(long c1 = 1 ; c1 <= lengths[i]; c1++){ 
+                         //Check whether (c1, c2,Dj) is a Simpson's Paradox according to Definition 1 (or Definition 2 if Strong paradox is found)
+                        long c1L = l1 + (c1 <<move[i]);
+                        Long c1LW = new Long(c1L);
+
+                        if(!map.containsKey(c1LW)){
+                             continue;
+                        }
+                         long c1pop = (map.get(c1LW).longValue() >> 32);
+                         double c1TotRate = getRate(map, c1LW);
+                        for(long c2 = c1 + 1; c2 <= lengths[i]; c2++){
+                             long c2L = l1 + (c2 <<move[i]);
+                             Long c2LW = new Long(c2L);
+                             if(!map.containsKey(c2LW)){
+                                 continue;
+                             }
+                             //prune
+                             if((map.get(c2LW).longValue() >> 32) + c1pop <= 4 * lengths[j]){
+                                 continue;
+                             }
+                             double c2TotRate = getRate(map, c2LW);
+                             boolean stillTrue = true;
+                             //use statistics to find paradox
+                             if(c1TotRate > c2TotRate){
+                                 for(long s = 1; s <= lengths[j] && stillTrue; s++){
+
+                                     long c1S = c1L + (s <<move[j]);
+                                     Long c1SW = new Long(c1S);
+                                     long c2S = c2L + (s << move[j]);
+                                     Long c2SW = new Long(c2S);
+
+                                     if(!map.containsKey(c1SW) || !map.containsKey(c2SW)){
+                                         stillTrue = false;
+                                         break;
+                                     }
+                                     double c1STotRate = getRate(map, c1SW);
+                                     double c2STotRate = getRate(map, c2SW);
+                                     if(c1STotRate > c2STotRate){ // >= for STRONG, > for Neutral
+                                         stillTrue = false;
+                                         break;
+                                     } 
+                                 }
+                                 
+                             } else if(c1TotRate < c2TotRate){
+                                for(long s = 1; s <= lengths[j] && stillTrue; s++){
+
+                                    long c1S = c1L + (s <<move[j]);
+                                    Long c1SW = new Long(c1S);
+                                    long c2S = c2L + (s << move[j]);
+                                    Long c2SW = new Long(c2S);
+
+                                    if(!map.containsKey(c1SW) || !map.containsKey(c2SW)){
+                                        stillTrue = false;
+                                        break;
+                                    }
+                                    double c1STotRate = getRate(map, c1SW);
+                                    double c2STotRate = getRate(map, c2SW);
+                                    if(c1STotRate < c2STotRate){ // >= for STRONG, > for Neutral
+                                        stillTrue = false;
+                                        break;
+                                    } 
+                                }
+                                
+                            } else {
+                                int c1gc2 = 0, c2gc1 = 0;
+                                for(long s = 1; s <= lengths[j] && stillTrue; s++){
+
+                                    long c1S = c1L + (s <<move[j]);
+                                    Long c1SW = new Long(c1S);
+                                    long c2S = c2L + (s << move[j]);
+                                    Long c2SW = new Long(c2S);
+
+                                    if(!map.containsKey(c1SW) || !map.containsKey(c2SW)){
+                                        stillTrue = false;
+                                        break;
+                                    }
+                                    double c1STotRate = getRate(map, c1SW);
+                                    double c2STotRate = getRate(map, c2SW);
+                                    if(c1STotRate < c2STotRate){ // >= for STRONG, > for Neutral
+                                        c2gc1++;
+                                    } else if (c1STotRate > c2STotRate){
+                                        c1gc2++;
+                                    }
+                                }
+                                if((c1gc2 != 0 && c2gc1 != 0) || (c1gc2 == 0 && c2gc1 == 0)){
+                                    stillTrue = false;
+                                }
+
+
+
+
+
+                            }
+
+
+                             if(stillTrue){ // there is a paradox 
+                                // do whatever
+                                counter++;
+                            }
+                         }
+
+                     }
+                 }
+             }
+
+        }
+
+    }
+    /**
+     * Calculates the rate of a subpopulation using its statistics
+     */
+    public static double getRate(HashMap<Long, Long> map, Long key){ 
+        double rate = 0;
+        if(map.containsKey(key)){
+            Long l1 = map.get(key);
+            long l2 =  l1.longValue();
+            double inc = l2 % ((long)1 << 32);
+            double tot = l2 / ((long)1 << 32);
+            rate = inc / tot;  
+        }
+        return rate;
+    }
+    /**
+     * Example of Algorithm 1
+     */
+    public static void main(String[] args) throws FileNotFoundException{
+        HashMap<String, Integer> indexHolder = new HashMap<>(); // Map to hold indexes
+        counter = 0;
+        int[] lengths = new int[size];// the 
+        List<String[]> lines = getLines(filename);
+        List<List<Integer>> enumRecs = new ArrayList<>();
+        List<Integer> bLabs = new ArrayList<>();
+        createIndex2(lines, indexHolder, lengths, enumRecs, bLabs);
+        int[] move = getMover(lengths);
+        HashMap<Long,Long> aggregations = new HashMap<>();
+
+        HashMap<Long, List<Long>> covers = new HashMap<>();
+
+        //System.out.println(System.currentTimeMillis() - time);
+        aggregate2(move, indexHolder, aggregations, enumRecs, bLabs);
+        //System.out.println(System.currentTimeMillis() - time);
+
+        findSP(aggregations, move, lengths);
+
+        System.out.println(counter);
+        System.out.println(System.currentTimeMillis() - time);
+    }
+
+}
