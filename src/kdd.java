@@ -10,7 +10,7 @@ import org.javatuples.Quartet;
  * @Jay Xu
  * @July 2024
  */
-public class Redundancy
+public class kdd
 {
     public static final int size = 8; // number of attributes
     public static final String filename = "adult.csv";
@@ -31,7 +31,7 @@ public class Redundancy
                 String[] fields = line.split(",", 0);
                 boolean flag = false;
                 for(String s : fields) {
-                    if(s.contains("?")) {
+                    if(s.contains(" ?") || s.contains("income")) {
                         flag = true;
                         break;
                     }
@@ -44,6 +44,7 @@ public class Redundancy
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(records.size());
         return records;
     }
 
@@ -56,12 +57,7 @@ public class Redundancy
      * @param binaryLabels the list of binary labels
      */
     public static void createIndex(List<String[]> records, HashMap<String, Integer> indexHolder, int[] lengths, List<List<Integer>> enumRecs, List<Integer> binaryLabels) {
-        boolean firstLine = true;
         for (String[] record : records) {
-            if(firstLine){ 
-                firstLine = false;
-                continue;
-            }
             int count = 0;
             List<Integer> enumRec = new ArrayList<>();
             for(String s: record){
@@ -199,6 +195,10 @@ public class Redundancy
         if(!stats.containsKey(c1) || !stats.containsKey(c2)) {
             return false;
         }
+
+        // if((stats.get(c1) >> 32) + (stats.get(c2) >> 32) <= 4* lengths[j]) {
+        //     return false;
+        // }
         
         double c1r = getRate(stats, c1);
         double c2r = getRate(stats, c2);
@@ -259,29 +259,19 @@ public class Redundancy
      * Gets the population with the least stars
      * @param list of populations
      * @param mover
-     * @return
+     * @return list of '*' for the population
      */
-    public static Pair<List<Integer>, Long> getLeastStars(List<Long> list, int[] mover) {
-        int least = size + 1;
-        long key = 0;
+    public static List<Integer> getStars(Long l, int[] mover) {
         List<Integer> zeros = new ArrayList<>();
-        for(Long l: list){
-            int numZeros = 0;
-            List<Integer> nzeros = new ArrayList<>();
-            for(int j = 0; j < size - 1; j++) {
-                
-                if(((l >> mover[j]) & (((long) 1 << (mover[j+1] - mover[j]) ) - 1)) == 0) {
-                    numZeros++;
-                    nzeros.add(j);
-                }
-            }
-            if(numZeros < least) {
-                key = l;
-                least = numZeros;
-                zeros = nzeros;
+        int numZeros = 0;
+        for(int j = 0; j < size - 1; j++) {
+            
+            if(((l >> mover[j]) & (((long) 1 << (mover[j+1] - mover[j]) ) - 1)) == 0) {
+                numZeros++;
+                zeros.add(j);
             }
         }
-        return new Pair<>(zeros, key);
+        return zeros;
     }
 
     /**
@@ -292,14 +282,11 @@ public class Redundancy
      * @param mover
      * @return a list of all SP
      */
-    public static List<Triplet<Long, Long, Integer>> findSP(HashMap<Long,Long> aggregations, HashMap<List<Long>, List<Long>> groupedCovers, int[] lengths, int[] mover ){
+    public static List<Triplet<Long, Long, Integer>> findSP(HashMap<Long,Long> aggregations, HashMap<Long, List<Long>> covers, int[] lengths, int[] mover ){
         List<Triplet<Long, Long, Integer>> allSps = new ArrayList<>(); // c1, c2, j
-        for(List<Long> k : groupedCovers.keySet()) { // k is the covering, v is the list of populations that have that covering
-            List<Long> v = groupedCovers.get(k);
-            Pair<List<Integer>, Long> info = getLeastStars(v, mover); // use the population with least stars
-            long l1 = info.getValue1();
-            List<Integer> zeros = info.getValue0();
-            List<Quartet<Integer, Integer, Long, Long>> coverSPs = new ArrayList<>(); // i, j, i1, i2
+        for(Long l1 : covers.keySet()) { // k is the covering, v is the list of populations that have that covering
+            List<Integer> zeros = getStars(l1, mover); // use the population with least stars
+            // List<Quartet<Integer, Integer, Long, Long>> coverSPs = new ArrayList<>(); // i, j, i1, i2
             if(zeros.size() < 2){
                 continue;
             }
@@ -323,7 +310,9 @@ public class Redundancy
 
                             boolean isSP = checkSP(c1, c2, j, aggregations, mover, lengths); // check SP
                             if(isSP) {
-                                coverSPs.add(new Quartet<>(i, j, i1, i2)); // if it is an SP, add it to this cover
+                                // coverSPs.add(new Quartet<>(i, j, i1, i2)); // if it is an SP, add it to this cover
+                                SPCounter++;
+                                allSps.add(new Triplet<>(c1, c2, j));
                             }
                         }
                     }
@@ -331,19 +320,19 @@ public class Redundancy
                 }
 
             }
-            for(Quartet<Integer, Integer, Long, Long> q : coverSPs){ // for the SPs in the cover
-                nonRedundantCounter++;
-                int i = q.getValue0();
-                int j = q.getValue1();
-                long i1 = q.getValue2();
-                long i2 = q.getValue3();
-                for(long pop:v){ // for all the populations that have this covering, call it an sp
-                    Triplet<Long, Long, Integer> t = new Triplet<>(pop + (i1 << mover[i]), pop + (i2 << mover[i]), j);
-                    allSps.add(t);
-                    SPCounter++;
-                }
+            // for(Quartet<Integer, Integer, Long, Long> q : coverSPs){ // for the SPs in the cover
+            //     nonRedundantCounter++;
+            //     int i = q.getValue0();
+            //     int j = q.getValue1();
+            //     long i1 = q.getValue2();
+            //     long i2 = q.getValue3();
+            //     for(long pop:v){ // for all the populations that have this covering, call it an sp
+            //         Triplet<Long, Long, Integer> t = new Triplet<>(pop + (i1 << mover[i]), pop + (i2 << mover[i]), j);
+            //         allSps.add(t);
+            //         SPCounter++;
+            //     }
 
-            }
+            // }
         }
         return allSps;
     }
@@ -370,14 +359,14 @@ public class Redundancy
         HashMap<List<Long>, List<Long>> groupedCovers = groupCovers(covers);
         System.out.println(covers.size());
         System.out.println(groupedCovers.size());
-        System.out.println(System.currentTimeMillis() - time);
+        // System.out.println(System.currentTimeMillis() - time);
         SPCounter = 0;
         nonRedundantCounter = 0;
-        List<Triplet<Long, Long, Integer>> SPs = findSP(aggregations, groupedCovers, lengths, move);
+        List<Triplet<Long, Long, Integer>> SPs = findSP(aggregations, covers, lengths, move);
 
         
         System.out.println(SPCounter);
-        //System.out.println(nonRedundantCounter);
+        // System.out.println(nonRedundantCounter);
         System.out.println(System.currentTimeMillis() - time);
     }
   
