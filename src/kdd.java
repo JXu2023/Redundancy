@@ -247,9 +247,12 @@ public class kdd
                     c2gc1++;
                 } else if(c1xr > c2xr) {
                     c1gc2++;
+                } else {
+                    return false;
                 }
             }
-            return (c1gc2 == 0 || c2gc1 == 0) && (c1gc2 != 0 || c2gc1 != 0);
+            // return (c1gc2 == 0 || c2gc1 == 0) && (c1gc2 != 0 || c2gc1 != 0);
+            return c1gc2 == 0 || c2gc1 == 0;
 
         }
         return true;
@@ -271,6 +274,12 @@ public class kdd
                 zeros.add(j);
             }
         }
+        
+        if((l >> mover[size - 1]) == 0) {
+                numZeros++;
+                zeros.add(size - 1);
+            }
+
         return zeros;
     }
 
