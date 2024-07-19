@@ -31,7 +31,7 @@ public class kdd
                 String[] fields = line.split(",", 0);
                 boolean flag = false;
                 for(String s : fields) {
-                    if(s.contains(" ?") || s.contains("income")) {
+                    if(s.contains("?")) {
                         flag = true;
                         break;
                     }
@@ -57,22 +57,32 @@ public class kdd
      * @param binaryLabels the list of binary labels
      */
     public static void createIndex(List<String[]> records, HashMap<String, Integer> indexHolder, int[] lengths, List<List<Integer>> enumRecs, List<Integer> binaryLabels) {
+        boolean firstLine = true;
         for (String[] record : records) {
+            if(firstLine){
+                firstLine = false;
+                continue;
+            }
             int count = 0;
             List<Integer> enumRec = new ArrayList<>();
             for(String s: record){
                 if(count == size){
+//                    if(s.equals("p")){
+//                        binaryLabels.add(1);
+//                    } else {
+//                        binaryLabels.add(0);
+//                    }
                     binaryLabels.add(Integer.parseInt(s));
                     break;
                 }
                 // create a distinct key that corresponds with an index
-                String key = count + " " + s; 
+                String key = count + " " + s;
                 if(!indexHolder.containsKey(key)){
                     // update the amount of elements for each attribute.
-                   lengths[count]++; 
-                   int i = lengths[count];
-                indexHolder.put(key, i); 
-                
+                    lengths[count]++;
+                    int i = lengths[count];
+                    indexHolder.put(key, i);
+
                 }
                 enumRec.add(indexHolder.get(key));
                 count++;
@@ -87,16 +97,16 @@ public class kdd
      * @param lengths
      * @return int[] mover
      */
-    public static int[] getMover(int[] lengths){ 
+    public static int[] getMover(int[] lengths){
         int[] bitSize = new int[size];
         bitSize[0] = 0;
         for(int i = 1; i < size; i++){
             bitSize[i] = bitSize[i-1] + (int)(Math.log(lengths[i-1])/Math.log(2)) + 1; // how many bits to move each attribute over
-            
+
         }
-        
+
         return bitSize;
-        
+
     }
 
     /**
@@ -151,14 +161,14 @@ public class kdd
      * @param key the population
      * @return the rate of the population
      */
-    public static double getRate(HashMap<Long, Long> map, Long key){ 
+    public static double getRate(HashMap<Long, Long> map, Long key){
         double rate = 0;
         if(map.containsKey(key)){
             Long l1 = map.get(key);
             long l2 =  l1.longValue();
             double inc = l2 % ((long)1 << 32);
             double tot = l2 >> 32;
-            rate = inc / tot;  
+            rate = inc / tot;
         }
         return rate;
     }
@@ -199,7 +209,7 @@ public class kdd
         // if((stats.get(c1) >> 32) + (stats.get(c2) >> 32) <= 4* lengths[j]) {
         //     return false;
         // }
-        
+
         double c1r = getRate(stats, c1);
         double c2r = getRate(stats, c2);
 
@@ -247,9 +257,12 @@ public class kdd
                     c2gc1++;
                 } else if(c1xr > c2xr) {
                     c1gc2++;
+                } else {
+                    return false;
                 }
             }
-            return (c1gc2 == 0 || c2gc1 == 0) && (c1gc2 != 0 || c2gc1 != 0);
+            // return (c1gc2 == 0 || c2gc1 == 0) && (c1gc2 != 0 || c2gc1 != 0);
+            return c1gc2 == 0 || c2gc1 == 0;
 
         }
         return true;
@@ -265,12 +278,18 @@ public class kdd
         List<Integer> zeros = new ArrayList<>();
         int numZeros = 0;
         for(int j = 0; j < size - 1; j++) {
-            
+
             if(((l >> mover[j]) & (((long) 1 << (mover[j+1] - mover[j]) ) - 1)) == 0) {
                 numZeros++;
                 zeros.add(j);
             }
         }
+
+        if((l >> mover[size - 1]) == 0) {
+            numZeros++;
+            zeros.add(size - 1);
+        }
+
         return zeros;
     }
 
@@ -293,7 +312,7 @@ public class kdd
             for(int i : zeros){ // for the stars
                 for(long i1 = 1; i1 < lengths[i]; i1++){ // for the indexes in that star to make siblings
                     long c1 = l1 + (i1 << mover[i]);
-                    
+
                     if(!aggregations.containsKey(c1)){
                         continue;
                     }
@@ -302,7 +321,7 @@ public class kdd
                         if(!aggregations.containsKey(c2)){
                             continue;
                         }
-                        
+
                         for(int j :zeros){ // for seperators
                             if(i == j) {
                                 continue;
@@ -343,31 +362,32 @@ public class kdd
      */
     public static void main(String[] args){
         HashMap<String, Integer> indexHolder = new HashMap<>(); // Map to hold indexes
-       
-        int[] lengths = new int[size];// the 
+
+        int[] lengths = new int[size];// the
         List<String[]> lines = getLines(filename);
         List<List<Integer>> enumRecs = new ArrayList<>();
         List<Integer> bLabs = new ArrayList<>();
         createIndex(lines, indexHolder, lengths, enumRecs, bLabs);
         int[] move = getMover(lengths);
         HashMap<Long,Long> aggregations = new HashMap<>();
-        
+
         HashMap<Long, List<Long>> covers = new HashMap<>();
-        
+
         //System.out.println(System.currentTimeMillis() - time);
         aggregate(move, indexHolder, aggregations, enumRecs, bLabs, covers);
-        HashMap<List<Long>, List<Long>> groupedCovers = groupCovers(covers);
-        System.out.println(covers.size());
-        System.out.println(groupedCovers.size());
+        //HashMap<List<Long>, List<Long>> groupedCovers = groupCovers(covers);
+        //System.out.println(covers.size());
+        //System.out.println(groupedCovers.size());
         // System.out.println(System.currentTimeMillis() - time);
         SPCounter = 0;
         nonRedundantCounter = 0;
+        System.out.println("agg time" + (System.currentTimeMillis() - time));
         List<Triplet<Long, Long, Integer>> SPs = findSP(aggregations, covers, lengths, move);
 
-        
+
         System.out.println(SPCounter);
         // System.out.println(nonRedundantCounter);
-        System.out.println(System.currentTimeMillis() - time);
+        System.out.println("tot time" + (System.currentTimeMillis() - time));
     }
-  
+
 }
