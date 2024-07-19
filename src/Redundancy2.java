@@ -5,8 +5,8 @@ import org.javatuples.Triplet;
 import org.javatuples.Quartet;
 
 public class Redundancy2 {
-    public static final int size = 8; // number of attributes
-    public static final String filename = "adult.csv";
+    public static final int size = 8; // number of attributes (adult : 8) (loan : 8) (mushroom : 12)
+    public static final String filename = "loan.csv";
     public static final boolean strong = true;
     public static long time = System.currentTimeMillis();
     public static int SPCounter;
@@ -32,6 +32,13 @@ public class Redundancy2 {
                 }
                 if(flag){
                     continue;
+                }
+                if (fields[size].equals("e")) {
+                    fields[size] = "1";
+                } else if (fields[size].equals("p")) {
+                    fields[size] = "0";
+                } else {
+                    smth = 0;
                 }
                 records.add(fields);
             }
@@ -466,8 +473,10 @@ public class Redundancy2 {
     public static void main(String[] args){
         HashMap<String, Integer> indexHolder = new HashMap<>(); // Map to hold indexes
 
-        int[] lengths = new int[size];// the
+        int[] lengths = new int[size];//
+        System.out.println("Dataset: " + filename);
         List<String[]> lines = getLines(filename);
+        System.out.println("Number of Records: " + lines.size());
         List<List<Integer>> enumRecs = new ArrayList<>();
         List<Integer> bLabs = new ArrayList<>();
         createIndex(lines, indexHolder, lengths, enumRecs, bLabs);
@@ -479,8 +488,8 @@ public class Redundancy2 {
         // System.out.println(System.currentTimeMillis() - time);
         aggregate(move, indexHolder, aggregations, enumRecs, bLabs, covers);
         HashMap<List<Long>, List<Long>> groupedCovers = groupCovers(covers);
-        System.out.println(covers.size());
-        System.out.println(groupedCovers.size());
+        System.out.println("Total number of non-empty populations: " + covers.size());
+        System.out.println("Total number of coverage equivalent subsets: " + groupedCovers.size());
         // System.out.println(System.currentTimeMillis() - time);
         SPCounter = 0;
         nonRedundantCounter = 0;
@@ -493,7 +502,7 @@ public class Redundancy2 {
         System.out.println("Total number of SP: " + SPs.size());
         System.out.println("Total number of redundant relations: " + infos.size());
         // System.out.println(nonRedundantCounter);
-        System.out.println(System.currentTimeMillis() - time);
+        System.out.println("Total runtime: " + ((double) (System.currentTimeMillis() - time) / 1000.0) + " seconds");
         // System.out.println(smth);
     }
 }

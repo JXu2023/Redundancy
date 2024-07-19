@@ -12,12 +12,13 @@ import org.javatuples.Quartet;
  */
 public class kdd
 {
-    public static final int size = 8; // number of attributes
-    public static final String filename = "adult.csv";
+    public static final int size = 12; // number of attributes
+    public static final String filename = "mushroom.csv";
     public static final boolean strong = true;
     public static long time = System.currentTimeMillis();
     public static int SPCounter;
     public static int nonRedundantCounter;
+    public static int smth = 0;
     /**
      * parses the csv
      * @param fileName
@@ -31,13 +32,20 @@ public class kdd
                 String[] fields = line.split(",", 0);
                 boolean flag = false;
                 for(String s : fields) {
-                    if(s.contains(" ?") || s.contains("income")) {
+                    if(s.contains("?") || s.contains(" ?")) {
                         flag = true;
                         break;
                     }
                 }
                 if(flag){
                     continue;
+                }
+                if (fields[size].equals("e")) {
+                    fields[size] = "1";
+                } else if (fields[size].equals("p")) {
+                    fields[size] = "0";
+                } else {
+                    smth = 0;
                 }
                 records.add(fields);
             }
@@ -57,7 +65,12 @@ public class kdd
      * @param binaryLabels the list of binary labels
      */
     public static void createIndex(List<String[]> records, HashMap<String, Integer> indexHolder, int[] lengths, List<List<Integer>> enumRecs, List<Integer> binaryLabels) {
+        boolean firstLine = true;
         for (String[] record : records) {
+            if(firstLine){
+                firstLine = false;
+                continue;
+            }
             int count = 0;
             List<Integer> enumRec = new ArrayList<>();
             for(String s: record){
