@@ -189,10 +189,14 @@ public class Redundancy2 {
      * @param lengths
      * @return boolean whether it is an SP
      */
-    public static boolean checkSP(Long c1, Long c2, int j, HashMap<Long, Long> stats, int[] move, int[] lengths, HashMap<Long, List<Long>> covers, Set<List<Long>> seperatorsInvolved) {
+    public static Pair<Boolean, Set<List<Long>>> checkSP(Long c1, Long c2, int j, HashMap<Long, Long> stats, int[] move, int[] lengths, HashMap<Long, List<Long>> covers) {
+        Set<List<Long>> separatorsInvolved = new HashSet<>();
         if(!stats.containsKey(c1) || !stats.containsKey(c2)) {
-            return false;
+            return new Pair<Boolean, Set<List<Long>>>(false, separatorsInvolved);
         }
+
+        separatorsInvolved.add(covers.get(c1));
+        separatorsInvolved.add(covers.get(c2));
 
         double c1r = getRate(stats, c1);
         double c2r = getRate(stats, c2);
@@ -202,16 +206,16 @@ public class Redundancy2 {
                 long c1x = c1 + (k << move[j]);
                 long c2x = c2 + (k << move[j]);
                 if(!stats.containsKey(c1x) || !stats.containsKey(c2x)) {
-                    return false;
+                    return new Pair<Boolean, Set<List<Long>>>(false, separatorsInvolved);
                 }
                 double c1xr = getRate(stats, c1x);
                 double c2xr = getRate(stats, c2x);
 
                 if(c1xr > c2xr){
-                    return false;
+                    return new Pair<Boolean, Set<List<Long>>>(false, separatorsInvolved);
                 }
-                seperatorsInvolved.add(covers.get(c1x));
-                seperatorsInvolved.add(covers.get(c2x));
+                separatorsInvolved.add(covers.get(c1x));
+                separatorsInvolved.add(covers.get(c2x));
 
 
             }
@@ -220,17 +224,17 @@ public class Redundancy2 {
                 long c1x = c1 + (k << move[j]);
                 long c2x = c2 + (k << move[j]);
                 if(!stats.containsKey(c1x) || !stats.containsKey(c2x)) {
-                    return false;
+                    return new Pair<Boolean, Set<List<Long>>>(false, separatorsInvolved);
                 }
                 double c1xr = getRate(stats, c1x);
                 double c2xr = getRate(stats, c2x);
 
                 if(c1xr < c2xr){
-                    return false;
+                    return new Pair<Boolean, Set<List<Long>>>(false, separatorsInvolved);
                 }
 
-                seperatorsInvolved.add(covers.get(c1x));
-                seperatorsInvolved.add(covers.get(c2x));
+                separatorsInvolved.add(covers.get(c1x));
+                separatorsInvolved.add(covers.get(c2x));
 
             }
         } else {
@@ -239,7 +243,7 @@ public class Redundancy2 {
                 long c1x = c1 + (k << move[j]);
                 long c2x = c2 + (k << move[j]);
                 if(!stats.containsKey(c1x) || !stats.containsKey(c2x)) {
-                    return false;
+                    return new Pair<Boolean, Set<List<Long>>>(false, separatorsInvolved);
                 }
                 double c1xr = getRate(stats, c1x);
                 double c2xr = getRate(stats, c2x);
@@ -247,15 +251,19 @@ public class Redundancy2 {
                     c2gc1++;
                 } else if(c1xr > c2xr) {
                     c1gc2++;
+                } else {
+                    return new Pair<Boolean, Set<List<Long>>>(false, separatorsInvolved);
                 }
 
-                seperatorsInvolved.add(covers.get(c1x));
-                seperatorsInvolved.add(covers.get(c2x));
+                separatorsInvolved.add(covers.get(c1x));
+                separatorsInvolved.add(covers.get(c2x));
             }
-            return (c1gc2 == 0 || c2gc1 == 0) && (c1gc2 != 0 || c2gc1 != 0);
+            // return (c1gc2 == 0 || c2gc1 == 0) && (c1gc2 != 0 || c2gc1 != 0);
+            return new Pair<Boolean, Set<List<Long>>>((c1gc2 == 0 || c2gc1 == 0), separatorsInvolved);
 
         }
-        return true;
+        // return true;
+        return new Pair<Boolean, Set<List<Long>>>(true, separatorsInvolved);
     }
 
     /**
@@ -309,18 +317,18 @@ public class Redundancy2 {
      * @param mover
      * @return a list of all SP
      */
-    public static Set<Triplet<Long, Long, Integer>> findSP(HashMap<Long,Long> aggregations, HashMap<List<Long>, List<Long>> groupedCovers, int[] lengths, int[] mover, HashMap<Long, List<Long>> covers ){
+    public static Pair<Set<Triplet<Long, Long, Integer>>, HashMap<Set<List<Long>>, Set<Triplet<Long, Long, Integer>>>> findSP(HashMap<Long,Long> aggregations, HashMap<List<Long>, List<Long>> groupedCovers, int[] lengths, int[] mover, HashMap<Long, List<Long>> covers ){
         Set<Triplet<Long, Long, Integer>> allSps = new HashSet<>(); // c1, c2, j
         HashMap<Set<List<Long>>, Set<Triplet<Long, Long, Integer>>> infos = new HashMap<>();
         HashMap<Set<List<Long>>, Set<Triplet<Long, Long, Integer>>> infosAux = new HashMap<>();
 
         for(List<Long> k : groupedCovers.keySet()) { // k is the covering, v is the list of populations that have that covering
             List<Long> v = groupedCovers.get(k);
-            Pair<List<Integer>, Long> info = getLeastStars(v, mover); // use the population with least stars
-            long l1 = info.getValue1();
-            List<Integer> zeros = info.getValue0();
-            List<Quartet<Integer, Integer, Long, Long>> coverSPs = new ArrayList<>(); // i, j, i1, i2
-            List<Set<List<Long>>> siblingCovers = new ArrayList<>();
+            Pair<List<Integer>, Long> stars = getLeastStars(v, mover); // use the population with least stars
+            long l1 = stars.getValue1();
+            List<Integer> zeros = stars.getValue0();
+            // List<Quartet<Integer, Integer, Long, Long>> coverSPs = new ArrayList<>(); // i, j, i1, i2
+            // List<Set<List<Long>>> siblingCovers = new ArrayList<>();
             if(zeros.size() < 2){
                 continue;
             }
@@ -337,22 +345,34 @@ public class Redundancy2 {
                             continue;
                         }
 
-                        for(int j :zeros){ // for seperators
+                        for(int j : zeros){ // for seperators
                             if(i == j) {
                                 continue;
                             }
-                            Set<List<Long>> seperatorsInvolved = new HashSet<>();
-                            boolean isSP = checkSP(c1, c2, j, aggregations, mover, lengths , covers, seperatorsInvolved); // check SP
-                            if(isSP) {
-                                coverSPs.add(new Quartet<>(i, j, i1, i2)); // if it is an SP, add it to this cover
-                                siblingCovers.add(seperatorsInvolved);
-                                //do the I stuff
-                                //get all the populations with the same cover
-                                List<Long> c1cov = groupedCovers.get(covers.get(c1));
 
+                            Triplet<Long, Long, Integer> p = new Triplet<>(c1, c2, j);
+                            if(allSps.contains(p)){
+                                continue;
+                            }
+
+                            Pair<Boolean, Set<List<Long>>> res = checkSP(c1, c2, j, aggregations, mover, lengths , covers); // check SP
+                            boolean isSp = res.getValue0();
+                            Set<List<Long>> info = res.getValue1();
+                            if(isSp && !infosAux.containsKey(info)) {
+                                allSps.add(p);
+                                infosAux.put(info, new HashSet<>());
+                                infos.put(info, new HashSet<>());
+                                infosAux.get(info).add(p);
+                                infos.get(info).add(p);
+
+                                // coverSPs.add(new Quartet<>(i, j, i1, i2)); // if it is an SP, add it to this cover
+                                // siblingCovers.add(seperatorsInvolved);
+                                // do the I stuff
+                                // get all the populations with the same cover
+
+                                List<Long> c1cov = groupedCovers.get(covers.get(c1));
                                 List<Long> c2cov = groupedCovers.get(covers.get(c2));
-                                if(!infosAux.containsKey(seperatorsInvolved)) {
-                                    for (Long t1 : c1cov) {
+                                for (Long t1 : c1cov) {
                                         Long[] t1Ind = getIndexes(t1, mover);
 
                                         for (Long t2 : c2cov) {
@@ -364,34 +384,71 @@ public class Redundancy2 {
                                                 }
                                             }
                                             if (diff == 1) { // sibings
-                                                if (!infosAux.containsKey(seperatorsInvolved)) {
-                                                    infosAux.put(seperatorsInvolved, new HashSet<>());
-                                                    infos.put(seperatorsInvolved, new HashSet<>());
-
-                                                }
                                                 long small = t1;
                                                 long big = t2;
                                                 if(t1 > t2){
                                                     small = t2;
                                                     big = t1;
                                                 }
-                                                Triplet<Long, Long, Integer> p = new Triplet<>(small, big, j);
-                                                allSps.add(p);
-                                                infos.get(seperatorsInvolved).add(p);
-                                                infosAux.get(seperatorsInvolved).add(p);
+                                                Triplet<Long, Long, Integer> p_prime = new Triplet<>(small, big, j);
+                                                allSps.add(p_prime);
+                                                infos.get(info).add(p_prime);
+                                                infosAux.get(info).add(p_prime);
                                             }
                                         }
                                     }
-                                } else {
-                                    for (Triplet<Long, Long, Integer> p : infosAux.get(seperatorsInvolved)) {
-                                        Triplet<Long, Long, Integer> pprime = new Triplet<>(p.getValue0(), p.getValue1(), j);
-                                        allSps.add(pprime);
-                                        infos.get(seperatorsInvolved).add(pprime);
-                                        smth++;
-                                        //System.out.println("This actually triggers");
-                                    }
+                            } else if (isSp && infosAux.containsKey(info)) {
+                                for (Triplet<Long, Long, Integer> p_pprime : infosAux.get(info)) {
+                                    long e1 = p_pprime.getValue0();
+                                    long e2 = p_pprime.getValue1();
+                                    Triplet<Long, Long, Integer> p_hat = new Triplet<>(e1, e2, j);
+                                    allSps.add(p_hat);
+                                    infos.get(info).add(p_hat);
                                 }
+                            } else {
+                                continue;
                             }
+                                // if(!infosAux.containsKey(seperatorsInvolved)) {
+                                    // for (Long t1 : c1cov) {
+                                    //     Long[] t1Ind = getIndexes(t1, mover);
+
+                                    //     for (Long t2 : c2cov) {
+                                    //         Long[] t2Ind = getIndexes(t2, mover);
+                                    //         int diff = 0;
+                                    //         for (int ind = 0; ind < size; ind++) {
+                                    //             if (t1Ind[ind] != t2Ind[ind]) {
+                                    //                 diff++;
+                                    //             }
+                                    //         }
+                                    //         if (diff == 1) { // sibings
+                                    //             if (!infosAux.containsKey(seperatorsInvolved)) {
+                                    //                 infosAux.put(seperatorsInvolved, new HashSet<>());
+                                    //                 infos.put(seperatorsInvolved, new HashSet<>());
+
+                                    //             }
+                                    //             long small = t1;
+                                    //             long big = t2;
+                                    //             if(t1 > t2){
+                                    //                 small = t2;
+                                    //                 big = t1;
+                                    //             }
+                                    //             Triplet<Long, Long, Integer> p = new Triplet<>(small, big, j);
+                                    //             allSps.add(p);
+                                    //             infos.get(seperatorsInvolved).add(p);
+                                    //             infosAux.get(seperatorsInvolved).add(p);
+                                    //         }
+                                    //     }
+                                    // }
+                                // } else {
+                                //     for (Triplet<Long, Long, Integer> p : infosAux.get(seperatorsInvolved)) {
+                                //         Triplet<Long, Long, Integer> pprime = new Triplet<>(p.getValue0(), p.getValue1(), j);
+                                //         allSps.add(pprime);
+                                //         infos.get(seperatorsInvolved).add(pprime);
+                                //         smth++;
+                                //         //System.out.println("This actually triggers");
+                                //     }
+                                // }
+                            // }
                         }
                     }
 
@@ -399,7 +456,7 @@ public class Redundancy2 {
 
             }
         }
-        return allSps;
+        return new Pair<Set<Triplet<Long, Long, Integer>>, HashMap<Set<List<Long>>, Set<Triplet<Long, Long, Integer>>>>(allSps, infos);
     }
 
 
@@ -419,20 +476,24 @@ public class Redundancy2 {
 
         HashMap<Long, List<Long>> covers = new HashMap<>();
 
-        //System.out.println(System.currentTimeMillis() - time);
+        // System.out.println(System.currentTimeMillis() - time);
         aggregate(move, indexHolder, aggregations, enumRecs, bLabs, covers);
         HashMap<List<Long>, List<Long>> groupedCovers = groupCovers(covers);
         System.out.println(covers.size());
         System.out.println(groupedCovers.size());
-        System.out.println(System.currentTimeMillis() - time);
+        // System.out.println(System.currentTimeMillis() - time);
         SPCounter = 0;
         nonRedundantCounter = 0;
-        Set<Triplet<Long, Long, Integer>> SPs = findSP(aggregations, groupedCovers, lengths, move, covers);
+        // Set<Triplet<Long, Long, Integer>> SPs = findSP(aggregations, groupedCovers, lengths, move, covers);
+        Pair<Set<Triplet<Long, Long, Integer>>, HashMap<Set<List<Long>>, Set<Triplet<Long, Long, Integer>>>> tup = findSP(aggregations, groupedCovers, lengths, move, covers);
+        Set<Triplet<Long, Long, Integer>> SPs = tup.getValue0();
+        HashMap<Set<List<Long>>, Set<Triplet<Long, Long, Integer>>> infos = tup.getValue1();
 
 
-        System.out.println(SPs.size());
-        //System.out.println(nonRedundantCounter);
+        System.out.println("Total number of SP: " + SPs.size());
+        System.out.println("Total number of redundant relations: " + infos.size());
+        // System.out.println(nonRedundantCounter);
         System.out.println(System.currentTimeMillis() - time);
-        System.out.println(smth);
+        // System.out.println(smth);
     }
 }
